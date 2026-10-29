@@ -1,0 +1,37 @@
+# Render Blueprint: one cron job (scraper) + one web service (viewer), sharing the D1 credentials.
+envVarGroups:
+  - name: caring-d1
+    envVars:
+      - key: CF_ACCOUNT_ID
+        sync: false
+      - key: CF_D1_DATABASE_ID
+        sync: false
+      - key: CF_API_TOKEN
+        sync: false
+
+services:
+  - type: cron
+    name: caring-scraper
+    runtime: python
+    plan: starter
+    schedule: "13 19 * * *"        # 03:13 Malaysia time, daily
+    buildCommand: pip install -r requirements.txt
+    startCommand: python scraper.py
+    envVars:
+      - fromGroup: caring-d1
+      - key: PYTHON_VERSION
+        value: 3.12.7
+
+  - type: web
+    name: caring-catalogue
+    runtime: python
+    plan: free
+    buildCommand: pip install -r requirements.txt
+    startCommand: gunicorn app:app --workers 2 --threads 4 --timeout 120
+    healthCheckPath: /healthz
+    envVars:
+      - fromGroup: caring-d1
+      - key: PYTHON_VERSION
+        value: 3.12.7
+      - key: VIEWER_PASSWORD
+        sync: false
