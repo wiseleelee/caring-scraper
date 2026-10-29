@@ -1,0 +1,23 @@
+name: Scrape CARiNG e-store
+
+on:
+  schedule:
+    - cron: "13 19 * * *"   # daily 03:13 Malaysia time
+  workflow_dispatch:         # adds a "Run workflow" button for manual runs
+
+jobs:
+  scrape:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+      - run: pip install -r requirements.txt
+      - run: python scraper.py
+        env:
+          CF_ACCOUNT_ID: 1ccb1e0374ac05e75e72c053ebad3792
+          CF_D1_DATABASE_ID: 669b5de1-132e-4b11-b14a-01b5e2950bb7
+          CF_API_TOKEN: ${{ secrets.CF_API_TOKEN }}
