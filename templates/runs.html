@@ -1,0 +1,23 @@
+{% extends "base.html" %}
+{% block title %}Scrape runs · Caring Catalogue{% endblock %}
+{% block body %}
+<h1>Scrape runs</h1>
+<div class="scroll"><table>
+  <tr><th>#</th><th>Started</th><th>Finished</th><th>Status</th><th class="num">Products</th><th class="num">New</th><th class="num">Price/stock changes</th><th>Message</th></tr>
+  {% for r in runs %}
+  <tr><td>{{ r.id }}</td><td>{{ r.started_at|when }}</td><td>{{ r.finished_at|when }}</td>
+      <td><span class="badge {{ 'ok' if r.status=='ok' else ('sale' if r.status=='error' else 'out') }}">{{ r.status }}</span></td>
+      <td class="num">{{ "{:,}".format(r.products or 0) }}</td><td class="num">{{ r.new_products or 0 }}</td>
+      <td class="num">{{ r.price_changes or 0 }}</td><td class="meta">{{ r.message or "" }}</td></tr>
+  {% else %}<tr><td colspan="8" class="meta">No runs yet.</td></tr>{% endfor %}
+</table></div>
+
+<h2>Latest price and stock changes</h2>
+<div class="scroll"><table>
+  <tr><th>Recorded</th><th>Product</th><th>Brand</th><th class="num">New price</th><th class="num">Compare at</th><th>Stock</th></tr>
+  {% for c in changes %}
+  <tr><td>{{ c.scraped_at|when }}</td><td><a href="{{ url_for('product', pid=c.id) }}">{{ c.title }}</a></td><td>{{ c.vendor or "" }}</td>
+      <td class="num">{{ c.price|rm }}</td><td class="num">{{ c.compare_at_price|rm }}</td><td>{{ "In stock" if c.available else "Out" }}</td></tr>
+  {% else %}<tr><td colspan="6" class="meta">No changes recorded yet. Changes appear from the second run onwards.</td></tr>{% endfor %}
+</table></div>
+{% endblock %}

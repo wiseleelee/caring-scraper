@@ -1,0 +1,48 @@
+{% extends "base.html" %}
+{% block title %}{{ p.title }} · Caring Catalogue{% endblock %}
+{% block body %}
+<p><a href="javascript:history.back()">‹ Back to results</a></p>
+<div style="display:grid;grid-template-columns:minmax(0,280px) 1fr;gap:24px;align-items:start" class="detail">
+  <div class="card"><div class="img">{% if p.image %}<img src="{{ p.image }}" alt="">{% endif %}</div></div>
+  <div>
+    <div class="vendor">{{ p.vendor or "" }}</div>
+    <h1>{{ p.title }}</h1>
+    <div class="cat" style="white-space:normal">{{ p.category or "No category tag" }}</div>
+    <div class="price" style="font-size:18px">
+      <b style="font-size:22px">{{ p.price_min|rm }}{% if p.price_max != p.price_min %} – {{ "%.2f"|format(p.price_max) }}{% endif %}</b>
+      {% if p.compare_at_max and p.compare_at_max > p.price_min %}<s>{{ p.compare_at_max|rm }}</s> <span class="badge sale">-{{ p.discount_pct|round|int }}%</span>{% endif %}
+    </div>
+    <p>
+      {% if run_started and p.last_seen < run_started %}<span class="badge out">Delisted</span>
+      {% elif p.available %}<span class="badge ok">In stock</span>{% else %}<span class="badge out">Out of stock</span>{% endif %}
+    </p>
+    <table style="max-width:560px">
+      <tr><th>First seen</th><td>{{ p.first_seen|when }}</td></tr>
+      <tr><th>Last seen</th><td>{{ p.last_seen|when }}</td></tr>
+      <tr><th>Store last updated</th><td>{{ p.shop_updated_at or "–" }}</td></tr>
+      <tr><th>Product ID</th><td>{{ p.id }}</td></tr>
+    </table>
+    <p><a class="btn" href="{{ p.url }}" target="_blank" rel="noopener">Open on CARiNG e-store ↗</a></p>
+  </div>
+</div>
+
+<h2>Variants</h2>
+<div class="scroll"><table>
+  <tr><th>Variant</th><th>SKU</th><th class="num">Price</th><th class="num">Compare at</th><th>Stock</th></tr>
+  {% for v in variants %}
+  <tr><td>{{ v.title or "Default" }}</td><td>{{ v.sku or "–" }}</td><td class="num">{{ v.price|rm }}</td>
+      <td class="num">{{ v.compare_at_price|rm }}</td><td>{{ "In stock" if v.available else "Out of stock" }}</td></tr>
+  {% endfor %}
+</table></div>
+
+<h2>Price and stock history</h2>
+<div class="scroll"><table>
+  <tr><th>Recorded</th><th>Variant</th><th class="num">Price</th><th class="num">Compare at</th><th>Stock</th></tr>
+  {% for h in history %}
+  <tr><td>{{ h.scraped_at|when }}</td><td>{{ h.variant_title or h.sku or "Default" }}</td><td class="num">{{ h.price|rm }}</td>
+      <td class="num">{{ h.compare_at_price|rm }}</td><td>{{ "In stock" if h.available else "Out of stock" }}</td></tr>
+  {% endfor %}
+</table></div>
+{% if p.tags %}<h2>Store tags</h2><p class="meta">{{ p.tags }}</p>{% endif %}
+<style>@media (max-width:640px){ .detail{grid-template-columns:1fr !important} }</style>
+{% endblock %}

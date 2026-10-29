@@ -1,0 +1,81 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>{% block title %}Caring Catalogue{% endblock %}</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#f5f7f6; --surface:#fff; --ink:#15211d; --muted:#5d6b66; --line:#e2e8e5;
+  --brand:#0f7a5c; --brand-soft:#e3f3ed; --sale:#c2410c; --sale-soft:#fff1e8; --out:#9aa5a1;
+}
+@media (prefers-color-scheme: dark){
+  :root{ --bg:#0f1513; --surface:#17201d; --ink:#e7eeeb; --muted:#9aaba4; --line:#26332e;
+         --brand:#3cc79c; --brand-soft:#16352b; --sale:#fb923c; --sale-soft:#3a2416; --out:#5f6d68; }
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:14px/1.5 Inter,system-ui,sans-serif}
+a{color:var(--brand);text-decoration:none} a:hover{text-decoration:underline}
+header{background:var(--surface);border-bottom:1px solid var(--line);position:sticky;top:0;z-index:5}
+.bar{max-width:1280px;margin:0 auto;padding:12px 16px;display:flex;gap:20px;align-items:center}
+.logo{font-weight:700;font-size:16px;color:var(--ink)} .logo span{color:var(--brand)}
+nav a{color:var(--muted);margin-right:16px;font-weight:500} nav a.on{color:var(--ink)}
+.spacer{flex:1} .meta{color:var(--muted);font-size:12px}
+main{max-width:1280px;margin:0 auto;padding:20px 16px 60px}
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;margin-bottom:18px}
+.stat{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:12px 14px}
+.stat b{display:block;font-size:22px;font-variant-numeric:tabular-nums}
+.stat small{color:var(--muted)}
+form.filters{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:12px;
+  display:grid;grid-template-columns:2fr 1.3fr 1.6fr repeat(4,auto) auto;gap:8px;align-items:center;margin-bottom:14px}
+input,select{font:inherit;color:var(--ink);background:var(--bg);border:1px solid var(--line);border-radius:7px;padding:8px 10px;min-width:0;width:100%}
+label.chk{display:flex;gap:6px;align-items:center;white-space:nowrap;color:var(--muted)} label.chk input{width:auto}
+button,.btn{font:inherit;font-weight:600;background:var(--brand);color:#fff;border:0;border-radius:7px;padding:8px 14px;cursor:pointer;white-space:nowrap}
+.btn.ghost{background:transparent;color:var(--brand);border:1px solid var(--line)}
+.toolbar{display:flex;justify-content:space-between;align-items:center;margin:4px 0 12px;gap:10px;flex-wrap:wrap}
+.toolbar .meta a{margin-left:10px}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:12px}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:10px;overflow:hidden;display:flex;flex-direction:column;color:inherit}
+.card:hover{border-color:var(--brand);text-decoration:none}
+.card .img{aspect-ratio:1;background:#fff;display:flex;align-items:center;justify-content:center;position:relative}
+.card img{width:100%;height:100%;object-fit:contain}
+.card .body{padding:10px 12px 12px;display:flex;flex-direction:column;gap:4px;flex:1}
+.vendor{font-size:11px;font-weight:600;letter-spacing:.04em;color:var(--muted);text-transform:uppercase}
+.name{font-weight:500;line-height:1.35;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.cat{font-size:12px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.price{margin-top:auto;padding-top:6px;display:flex;gap:8px;align-items:baseline;font-variant-numeric:tabular-nums}
+.price b{font-size:15px} .price s{color:var(--muted);font-size:12px}
+.badge{font-size:11px;font-weight:600;border-radius:5px;padding:2px 6px}
+.badge.sale{background:var(--sale-soft);color:var(--sale)}
+.badge.out{background:var(--line);color:var(--muted)}
+.badge.ok{background:var(--brand-soft);color:var(--brand)}
+.img .badge{position:absolute;top:8px;left:8px}
+.pager{display:flex;gap:6px;justify-content:center;margin-top:22px;align-items:center}
+.pager a,.pager span{padding:6px 11px;border:1px solid var(--line);border-radius:7px;background:var(--surface)}
+.pager span.cur{background:var(--brand);color:#fff;border-color:var(--brand)}
+table{width:100%;border-collapse:collapse;background:var(--surface);border:1px solid var(--line);border-radius:10px;overflow:hidden}
+th,td{text-align:left;padding:9px 12px;border-bottom:1px solid var(--line);vertical-align:top}
+th{font-size:12px;color:var(--muted);font-weight:600;background:var(--bg)}
+td.num,th.num{text-align:right;font-variant-numeric:tabular-nums}
+.empty{padding:40px;text-align:center;color:var(--muted);background:var(--surface);border:1px dashed var(--line);border-radius:10px}
+h1{font-size:20px;margin:0 0 4px} h2{font-size:15px;margin:26px 0 10px}
+.scroll{overflow-x:auto}
+@media (max-width:900px){ form.filters{grid-template-columns:1fr 1fr} form.filters .q{grid-column:1/-1} }
+@media (max-width:560px){ .bar{flex-wrap:wrap;gap:8px} .grid{grid-template-columns:repeat(2,1fr)} }
+</style>
+</head>
+<body>
+<header><div class="bar">
+  <a class="logo" href="{{ url_for('index') }}">Caring <span>Catalogue</span></a>
+  <nav>
+    <a href="{{ url_for('index') }}" class="{{ 'on' if request.endpoint in ('index','product') }}">Products</a>
+    <a href="{{ url_for('runs') }}" class="{{ 'on' if request.endpoint == 'runs' }}">Scrape runs</a>
+  </nav>
+  <div class="spacer"></div>
+  <div class="meta">Source: estore.caring2u.com</div>
+</div></header>
+<main>{% block body %}{% endblock %}</main>
+</body>
+</html>

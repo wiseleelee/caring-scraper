@@ -1,0 +1,83 @@
+{% extends "base.html" %}
+{% block body %}
+<div class="stats">
+  <div class="stat"><b>{{ "{:,}".format(stats.total or 0) }}</b><small>Products listed</small></div>
+  <div class="stat"><b>{{ "{:,}".format(stats.in_stock or 0) }}</b><small>In stock</small></div>
+  <div class="stat"><b>{{ "{:,}".format(stats.on_sale or 0) }}</b><small>On sale</small></div>
+  <div class="stat"><b>{{ "{:,}".format(stats.brands or 0) }}</b><small>Brands</small></div>
+  <div class="stat"><b style="font-size:15px;padding-top:5px">{{ run.finished_at|when if run else "Never" }}</b><small>Last successful scrape</small></div>
+</div>
+
+<form class="filters" method="get">
+  <input class="q" name="q" value="{{ f.q }}" placeholder="Search name, brand, SKU or tag">
+  <input name="vendor" value="{{ f.vendor }}" list="vendors" placeholder="Any brand">
+  <input name="category" value="{{ f.category }}" list="cats" placeholder="Any category">
+  <select name="stock">
+    <option value="">Any stock</option>
+    <option value="in" {{ 'selected' if f.stock=='in' }}>In stock</option>
+    <option value="out" {{ 'selected' if f.stock=='out' }}>Out of stock</option>
+  </select>
+  <select name="status">
+    <option value="active" {{ 'selected' if f.status=='active' }}>Listed now</option>
+    <option value="removed" {{ 'selected' if f.status=='removed' }}>Delisted</option>
+    <option value="all" {{ 'selected' if f.status=='all' }}>All ever seen</option>
+  </select>
+  <select name="sort">
+    <option value="updated" {{ 'selected' if f.sort=='updated' }}>Recently updated</option>
+    <option value="newest" {{ 'selected' if f.sort=='newest' }}>Newest first</option>
+    <option value="discount" {{ 'selected' if f.sort=='discount' }}>Biggest discount</option>
+    <option value="price_asc" {{ 'selected' if f.sort=='price_asc' }}>Price: low to high</option>
+    <option value="price_desc" {{ 'selected' if f.sort=='price_desc' }}>Price: high to low</option>
+    <option value="title" {{ 'selected' if f.sort=='title' }}>Name A–Z</option>
+  </select>
+  <label class="chk"><input type="checkbox" name="sale" value="1" {{ 'checked' if f.sale=='1' }}> On sale</label>
+  <button>Filter</button>
+  <datalist id="vendors">{% for v in vendors %}<option value="{{ v.vendor }}">{{ v.n }}</option>{% endfor %}</datalist>
+  <datalist id="cats">{% for c in categories %}<option value="{{ c.category }}">{{ c.n }}</option>{% endfor %}</datalist>
+</form>
+
+<div class="toolbar">
+  <div><b>{{ "{:,}".format(total) }}</b> <span class="meta">matching products</span></div>
+  <div class="meta">
+    <a href="{{ url_for('index') }}">Clear filters</a>
+    <a href="{{ url_for('export_csv', **request.args.to_dict()) }}">Download CSV</a>
+  </div>
+</div>
+
+{% if rows %}
+<div class="grid">
+{% for p in rows %}
+  <a class="card" href="{{ url_for('product', pid=p.id) }}">
+    <div class="img">
+      {% if p.image %}<img loading="lazy" src="{{ p.image }}{{ '&' if '?' in p.image else '?' }}width=400" alt="" onerror="this.remove()">{% endif %}
+      {% if run_started and p.last_seen < run_started %}<span class="badge out">Delisted</span>
+      {% elif not p.available %}<span class="badge out">Out of stock</span>
+      {% elif p.discount_pct %}<span class="badge sale">-{{ p.discount_pct|round|int }}%</span>{% endif %}
+    </div>
+    <div class="body">
+      <div class="vendor">{{ p.vendor or "" }}</div>
+      <div class="name">{{ p.title }}</div>
+      <div class="cat">{{ p.category or "" }}</div>
+      <div class="price">
+        <b>{{ p.price_min|rm }}{% if p.price_max and p.price_max != p.price_min %} – {{ "%.2f"|format(p.price_max) }}{% endif %}</b>
+        {% if p.compare_at_max and p.compare_at_max > p.price_min %}<s>{{ p.compare_at_max|rm }}</s>{% endif %}
+      </div>
+    </div>
+  </a>
+{% endfor %}
+</div>
+
+{% if pages > 1 %}
+<div class="pager">
+  {% if page > 1 %}<a href="{{ page_url(page=page-1) }}">‹ Prev</a>{% endif %}
+  {% for n in range([1, page-2]|max, [pages, page+2]|min + 1) %}
+    {% if n == page %}<span class="cur">{{ n }}</span>{% else %}<a href="{{ page_url(page=n) }}">{{ n }}</a>{% endif %}
+  {% endfor %}
+  <span class="meta" style="border:0;background:none">of {{ pages }}</span>
+  {% if page < pages %}<a href="{{ page_url(page=page+1) }}">Next ›</a>{% endif %}
+</div>
+{% endif %}
+{% else %}
+<div class="empty">{% if run %}No products match these filters.{% else %}No data yet. The scraper hasn't completed a run.{% endif %}</div>
+{% endif %}
+{% endblock %}
